@@ -1,0 +1,3 @@
+module ParticleDetection
+
+end # module
