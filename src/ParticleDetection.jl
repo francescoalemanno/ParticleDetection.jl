@@ -2,25 +2,33 @@ module ParticleDetection
     using KernelOps
     @inline function op_mean(A,Is,I)
         m=zero(eltype(A))
-        @inbounds @simd for i in Is
+        @inbounds for i in Is
             m+=A[i]
         end
         m/length(Is)
     end
 
-    struct op_gaussian <: Function
+    struct op_gaussian{T,N} <: Function
         sn::Int
+        w::Array{T,N}
+        function op_gaussian(A,sn)
+            w=similar(eltype(A)[],ntuple(i->sn*2+1,ndims(A)))
+            for I in CartesianIndices(w)
+                deltaX=Tuple(I).-sn.-1
+                delta=sum(pow2,deltaX)/(sn*sn)
+                w[I]=exp(-2*delta)
+            end
+            new{eltype(A),ndims(A)}(sn,w)
+        end
     end
     @inline function (p::op_gaussian)(A::AbstractArray{T}, Is, I) where T
         ws=zero(T)
         s=ws
-        K1=convert(T,pow2(p.sn)::Int)::T
+        rc=CartesianIndex(ntuple(i->p.sn+1,ndims(A)))
         @inbounds for i in Is
-            deltaX=convert.(T,Tuple(i-I))
-            delta=sum(pow2,deltaX)::T/K1::T
-            w=exp(-T(2)*delta::T)
-            s+=A[i]*w
-            ws+=w
+            ni=i-I+rc
+            s+=A[i]*p.w[ni]
+            ws+=p.w[ni]
         end
         s/ws
     end
@@ -40,7 +48,7 @@ module ParticleDetection
 
     function bp_filter(image,sn,so)
         fobject=KernelOp(op_mean,image,(so,so))
-        fnoise=KernelOp(op_gaussian(sn),image,(sn,sn))
+        fnoise=KernelOp(op_gaussian(image,sn),image,(sn,sn))
         Z=zero(eltype(image))
         @. max(fnoise-fobject,Z)
     end
