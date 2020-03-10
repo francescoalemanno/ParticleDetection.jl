@@ -66,8 +66,6 @@ module ParticleDetection
         end
         mask
     end
-
-
 end # module
 
 #%%
