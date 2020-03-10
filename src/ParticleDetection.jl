@@ -47,11 +47,16 @@ module ParticleDetection
     export bp_filter
 
     function bp_filter(image,sn,so)
+        T=eltype(image)
         G=op_gaussian(image,sn)
-        Z=zero(eltype(image))
+        Z=zero(T)
         fobject=KernelOp(op_mean,image,(so,so))
         fnoise=KernelOp(G,image,(sn,sn))
-        @. max(fnoise-fobject,Z)
+        pre=similar(T[],size(image))
+        Threads.@threads for i in CartesianIndices(pre)
+            @inbounds pre[i]=max(fnoise[i]-fobject[i],Z)
+        end
+        pre
     end
     export local_maxima
     function local_maxima(image,abs_th=zero(eltype(image)))
