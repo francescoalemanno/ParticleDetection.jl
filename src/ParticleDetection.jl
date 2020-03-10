@@ -2,8 +2,8 @@ module ParticleDetection
     using KernelOps
     @inline function op_mean(A,Is,I)
         m=zero(eltype(A))
-        @inbounds for i in Is
-            m+=A[i]
+        @simd for i in Is
+            @inbounds m+=A[i]
         end
         m/length(Is)
     end
@@ -34,9 +34,9 @@ module ParticleDetection
     end
 
     @inline function op_max(A,Is,I)
-        m=A[I]
-        @inbounds @simd for i in Is
-            m=max(m,A[i])
+        @inbounds m=A[I]
+        @simd for i in Is
+            @inbounds m=max(m,A[i])
         end
         m
     end
@@ -47,18 +47,24 @@ module ParticleDetection
     export bp_filter
 
     function bp_filter(image,sn,so)
-        fobject=KernelOp(op_mean,image,(so,so))
-        fnoise=KernelOp(op_gaussian(image,sn),image,(sn,sn))
+        G=op_gaussian(image,sn)
         Z=zero(eltype(image))
+        fobject=KernelOp(op_mean,image,(so,so))
+        fnoise=KernelOp(G,image,(sn,sn))
         @. max(fnoise-fobject,Z)
     end
     export local_maxima
     function local_maxima(image,abs_th=zero(eltype(image)))
         abs_th=convert(eltype(image),abs_th)
-        ONE=one(eltype(image))
-        ZERO=zero(eltype(image))
         max_im=KernelOp(op_max,image,(1,1))
-        (max_im .== image) .& (image .> abs_th)
+        mask=falses(size(image)...)
+        Threads.@threads for i in CartesianIndices(mask)
+            @inbounds a=max_im[i]
+            @inbounds b=image[i]
+            @fastmath c=((a == b) && (b > abs_th))
+            mask[i]=c
+        end
+        mask
     end
 
 
