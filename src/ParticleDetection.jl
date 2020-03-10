@@ -21,6 +21,7 @@ module ParticleDetection
             new{eltype(A),ndims(A)}(sn,w)
         end
     end
+
     @inline function (p::op_gaussian)(A::AbstractArray{T}, Is, I) where T
         ws=zero(T)
         s=ws
@@ -44,6 +45,7 @@ module ParticleDetection
     @inline function pow2(x)
         x*x
     end
+
     export bp_filter
 
     function bp_filter(image,sn,so)
@@ -58,7 +60,9 @@ module ParticleDetection
         end
         pre
     end
+
     export local_maxima
+    
     function local_maxima(image,abs_th=zero(eltype(image)))
         abs_th=convert(eltype(image),abs_th)
         max_im=KernelOp(op_max,image,(1,1))
@@ -72,5 +76,3 @@ module ParticleDetection
         mask
     end
 end # module
-
-#%%
