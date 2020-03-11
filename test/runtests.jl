@@ -4,10 +4,7 @@ using Serialization
 
 @testset "Detect Particles" begin
     ima=deserialize(joinpath(@__DIR__, "particles.bin"))
-    @time begin
-        lm=local_maxima(bp_filter(ima,6,10),0.2)
-        P=[Tuple(p) for p in CartesianIndices(lm) if lm[p]]
-    end
+    @time P=detect_particles(ima,6,10,0.2f0)
     @test P==[(1081, 32), (1112, 92), (1145, 120), (1101, 149), (818, 308), (2205, 322),
              (786, 412), (839, 444), (864, 449), (774, 464), (830, 487), (774, 503),
               (871, 510), (801, 523), (816, 537), (835, 541), (805, 549), (863, 555),
