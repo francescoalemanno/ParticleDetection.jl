@@ -1,5 +1,9 @@
 module ParticleDetection
     using KernelOps
+
+    include("radius_find.jl")
+    export find_best_radius
+    
     @inline function op_mean(A,Is,I)
         m=zero(eltype(A))
         @simd for i in Is

@@ -5,6 +5,7 @@ using Serialization
 @testset "Detect Particles" begin
     ima=deserialize(joinpath(@__DIR__, "particles.bin"))
     @time P=detect_particles(ima,6,10,0.2f0)
+    @test find_best_radius(ima,P,10) == 12
     @test P==[(1081, 32), (1112, 92), (1145, 120), (1101, 149), (818, 308), (2205, 322),
              (786, 412), (839, 444), (864, 449), (774, 464), (830, 487), (774, 503),
               (871, 510), (801, 523), (816, 537), (835, 541), (805, 549), (863, 555),
@@ -27,15 +28,18 @@ using Serialization
               (887, 2075), (1632, 2146), (1249, 2147), (1734, 2152), (879, 2153), (836, 2169),
               (892, 2173), (95, 2302), (162, 2327), (431, 2346), (45, 2364), (161, 2364), (268, 2364)]
 end
-#=
-ima=deserialize(joinpath(@__DIR__, "particles.bin"))
-@time lm=local_maxima(bp_filter(ima,6,10),0.2)
-P=[Tuple(p) for p in CartesianIndices(lm) if lm[p]>0.5]
-@show P
-
-using PyPlot
-pygui(true)
-
-imshow(ima)
-scatter(getindex.(P,2).-1,getindex.(P,1).-1,color="red")
-=#
+#
+# ima=deserialize(joinpath(@__DIR__, "particles.bin"))
+# @time P=detect_particles(ima,6,10,0.2f0)
+# b_rad=find_best_radius(ima,P,10)
+# @time P2=detect_particles(ima,6,b_rad,0.2f0)
+#
+#
+# using PyPlot
+# pygui(true)
+#
+# imshow(ima)
+# scatter(getindex.(P2,2).-1,getindex.(P2,1).-1,color="red")
+# scatter(getindex.(P,2).-1,getindex.(P,1).-1,color="blue",alpha=0.5)
+#
+#
