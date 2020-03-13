@@ -77,7 +77,8 @@ function kern_find_best_radius(ima,P,rs::Int)
     round(Int,sum(best_radiuses)/length(best_radiuses))
 end
 
-function find_best_radius(ima,P,rs::Int)
+function find_best_radius(ima,rawP,rs::Int)
+    P=select_seeds(ima,rawP)
     r=rs
     for i in 1:10
         nr=kern_find_best_radius(ima,P,r)
