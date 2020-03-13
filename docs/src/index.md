@@ -1,3 +1,8 @@
 # ParticleDetection
 
-*Documentation goes here.*
+```@index
+```
+
+```@autodocs
+Modules = [AdaMeanShift]
+```
