@@ -8,6 +8,7 @@ KernelOps = "96fb99f5-d28b-4914-8161-ce02e97273ad"
 Serialization = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 
 [compat]
+KernelOps = "0.1"
 julia = "^1.2"
 
 [extras]
