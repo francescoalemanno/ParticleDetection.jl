@@ -27,9 +27,16 @@ function select_seeds(ima,P)
     seeds
 end
 
-function integrate_disk(ima,P,r::Int)
-    r_half=r>>1
-    op_size=ntuple(i->(r+r_half),ndims(ima))
+function integrate_disk(ima,P,r)
+    integrate_ring(ima,P,oftype(r,0),r)
+end
+
+function integrate_ring(ima,P,rs,rh=rs*sqrt(2))
+    if rs>rh
+        rs,rh=rh,rs
+    end
+    r_half=rh+1
+    op_size=ntuple(i->round(Int,rh+1),ndims(ima))
     kop=KernelOp(ima,op_size) do A,Is,ci_I
         Iim=zero(eltype(A))
         I=Tuple(ci_I)
@@ -37,14 +44,14 @@ function integrate_disk(ima,P,r::Int)
         for ci_Itrasl in Is
             Itrasl=Tuple(ci_Itrasl)
             dist=tnorm2(Itrasl.-I)
-            if r*r < dist< 2*r*r
+            if rs*rs <= dist <= rh*rh
                 Iim += A[ci_Itrasl]
                 N+=1
             end
         end
-        Iim
+        Iim,N
     end
-    [kop[p...] for p in P]
+    [kop[round.(Int,p)...] for p in P]
 end
 
 function scan_radiuses(ima,P,rs::Int)
@@ -55,7 +62,7 @@ function scan_radiuses(ima,P,rs::Int)
     sums=zeros(T,length(r_range))
     i=1
     for r in r_range
-        sums[i] = sum(integrate_disk(ima,P,r))
+        sums[i] = sum(x->x[1],integrate_ring(ima,P,r))
         i+=1
     end
     r_range,sums/length(P)
